@@ -5,46 +5,20 @@ package model
 type Mutation struct {
 }
 
-type NewSchool struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
-}
-
-type NewStudent struct {
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	Number    *string `json:"number,omitempty"`
-}
-
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type NewUser struct {
+	Name string `json:"name"`
 }
 
 type Query struct {
 }
 
-type School struct {
-	Name    *string `json:"name,omitempty"`
-	Address *string `json:"address,omitempty"`
-	ID      string  `json:"ID"`
-}
-
-type Student struct {
-	ID        *string `json:"id,omitempty"`
-	FirstName *string `json:"firstName,omitempty"`
-	LastName  *string `json:"lastName,omitempty"`
+type StudentInput struct {
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
 	Number    *string `json:"number,omitempty"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
-}
-
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   string  `json:"ID"`
+	Name *string `json:"name,omitempty"`
 }

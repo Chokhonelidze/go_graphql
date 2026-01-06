@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/graph"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/vektah/gqlparser/v2/ast"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"app/graph/model"
 )
 
 const defaultPort = "8080"
@@ -22,7 +26,30 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	dbHost := getEnv("DB_HOST", "postgres_db")
+	dbPort := getEnv("DB_PORT", "5432")
+	dbUser := getEnv("DB_USER", "graphql_user")
+	dbPassword := getEnv("DB_PASSWORD", "securepassword")
+	dbName := getEnv("DB_NAME", "graphql_db")
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("failed to get database instance: %v", err)
+	}
+
+	defer sqlDB.Close()
+
+	resolvers := &graph.Resolver{DB: db}
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolvers}))
+	if err := db.AutoMigrate(&model.Student{}); err != nil {
+        log.Fatalf("failed to migrate database: %v", err)
+    }
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
@@ -41,3 +68,11 @@ func main() {
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
+
+func getEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+ 
