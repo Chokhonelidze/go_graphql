@@ -31,7 +31,11 @@ func (r *mutationResolver) CreateStudent(ctx context.Context, input model.Studen
 
 // GetStudents is the resolver for the getStudents field.
 func (r *queryResolver) GetStudents(ctx context.Context) ([]*model.Student, error) {
-	panic(fmt.Errorf("not implemented: GetStudents - getStudents"))
+	var students []*model.Student
+	if err := r.DB.Find(&students).Error; err != nil {
+		return nil, err
+	}
+	return students, nil
 }
 
 // ID is the resolver for the ID field.

@@ -42,6 +42,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Student() StudentResolver
+	ZurichTeam() ZurichTeamResolver
 }
 
 type DirectiveRoot struct {
@@ -49,13 +50,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateStudent func(childComplexity int, input model.StudentInput) int
-		CreateUser    func(childComplexity int, input *model.NewUser) int
+		CreateStudent    func(childComplexity int, input model.StudentInput) int
+		CreateUser       func(childComplexity int, input *model.NewUser) int
+		CreateZurichTeam func(childComplexity int, name string) int
 	}
 
 	Query struct {
-		GetStudents func(childComplexity int) int
-		GetUsers    func(childComplexity int) int
+		GetStudents    func(childComplexity int) int
+		GetUsers       func(childComplexity int) int
+		GetZurichTeams func(childComplexity int) int
 	}
 
 	Student struct {
@@ -69,18 +72,28 @@ type ComplexityRoot struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
+
+	ZurichTeam struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input *model.NewUser) (*model.User, error)
 	CreateStudent(ctx context.Context, input model.StudentInput) (*model.Student, error)
+	CreateZurichTeam(ctx context.Context, name string) (*model.ZurichTeam, error)
 }
 type QueryResolver interface {
 	GetUsers(ctx context.Context) ([]*model.User, error)
 	GetStudents(ctx context.Context) ([]*model.Student, error)
+	GetZurichTeams(ctx context.Context) ([]*model.ZurichTeam, error)
 }
 type StudentResolver interface {
 	ID(ctx context.Context, obj *model.Student) (string, error)
+}
+type ZurichTeamResolver interface {
+	ID(ctx context.Context, obj *model.ZurichTeam) (string, error)
 }
 
 type executableSchema struct {
@@ -124,6 +137,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(*model.NewUser)), true
+	case "Mutation.createZurichTeam":
+		if e.complexity.Mutation.CreateZurichTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createZurichTeam_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateZurichTeam(childComplexity, args["name"].(string)), true
 
 	case "Query.getStudents":
 		if e.complexity.Query.GetStudents == nil {
@@ -137,6 +161,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.GetUsers(childComplexity), true
+	case "Query.getZurichTeams":
+		if e.complexity.Query.GetZurichTeams == nil {
+			break
+		}
+
+		return e.complexity.Query.GetZurichTeams(childComplexity), true
 
 	case "Student.firstName":
 		if e.complexity.Student.FirstName == nil {
@@ -175,6 +205,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.User.Name(childComplexity), true
+
+	case "ZurichTeam.ID":
+		if e.complexity.ZurichTeam.ID == nil {
+			break
+		}
+
+		return e.complexity.ZurichTeam.ID(childComplexity), true
+	case "ZurichTeam.Name":
+		if e.complexity.ZurichTeam.Name == nil {
+			break
+		}
+
+		return e.complexity.ZurichTeam.Name(childComplexity), true
 
 	}
 	return 0, false
@@ -282,7 +325,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphqls" "students.graphqls"
+//go:embed "schema.graphqls" "students.graphqls" "zurichTeam.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -296,6 +339,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
 	{Name: "students.graphqls", Input: sourceData("students.graphqls"), BuiltIn: false},
+	{Name: "zurichTeam.graphqls", Input: sourceData("zurichTeam.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -322,6 +366,17 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createZurichTeam_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "name", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -486,6 +541,53 @@ func (ec *executionContext) fieldContext_Mutation_createStudent(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createZurichTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createZurichTeam,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateZurichTeam(ctx, fc.Args["name"].(string))
+		},
+		nil,
+		ec.marshalNZurichTeam2ᚖappᚋgraphᚋmodelᚐZurichTeam,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createZurichTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_ZurichTeam_ID(ctx, field)
+			case "Name":
+				return ec.fieldContext_ZurichTeam_Name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ZurichTeam", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createZurichTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -555,6 +657,41 @@ func (ec *executionContext) fieldContext_Query_getStudents(_ context.Context, fi
 				return ec.fieldContext_Student_number(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Student", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getZurichTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_getZurichTeams,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().GetZurichTeams(ctx)
+		},
+		nil,
+		ec.marshalNZurichTeam2ᚕᚖappᚋgraphᚋmodelᚐZurichTeamᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_getZurichTeams(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_ZurichTeam_ID(ctx, field)
+			case "Name":
+				return ec.fieldContext_ZurichTeam_Name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ZurichTeam", field.Name)
 		},
 	}
 	return fc, nil
@@ -832,6 +969,64 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 func (ec *executionContext) fieldContext_User_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ZurichTeam_ID(ctx context.Context, field graphql.CollectedField, obj *model.ZurichTeam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ZurichTeam_ID,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.ZurichTeam().ID(ctx, obj)
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ZurichTeam_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ZurichTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ZurichTeam_Name(ctx context.Context, field graphql.CollectedField, obj *model.ZurichTeam) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ZurichTeam_Name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2ᚖstring,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ZurichTeam_Name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ZurichTeam",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -2391,6 +2586,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createStudent(ctx, field)
 			})
+		case "createZurichTeam":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createZurichTeam(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2462,6 +2664,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getStudents(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getZurichTeams":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getZurichTeams(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -2599,6 +2823,81 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var zurichTeamImplementors = []string{"ZurichTeam"}
+
+func (ec *executionContext) _ZurichTeam(ctx context.Context, sel ast.SelectionSet, obj *model.ZurichTeam) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, zurichTeamImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ZurichTeam")
+		case "ID":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ZurichTeam_ID(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "Name":
+			out.Values[i] = ec._ZurichTeam_Name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3005,6 +3304,28 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v any) (*string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	_ = sel
+	res := graphql.MarshalString(*v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNStudent2ᚕᚖappᚋgraphᚋmodelᚐStudentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Student) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -3072,6 +3393,64 @@ func (ec *executionContext) marshalNUser2ᚖappᚋgraphᚋmodelᚐUser(ctx conte
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNZurichTeam2appᚋgraphᚋmodelᚐZurichTeam(ctx context.Context, sel ast.SelectionSet, v model.ZurichTeam) graphql.Marshaler {
+	return ec._ZurichTeam(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNZurichTeam2ᚕᚖappᚋgraphᚋmodelᚐZurichTeamᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ZurichTeam) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNZurichTeam2ᚖappᚋgraphᚋmodelᚐZurichTeam(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNZurichTeam2ᚖappᚋgraphᚋmodelᚐZurichTeam(ctx context.Context, sel ast.SelectionSet, v *model.ZurichTeam) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ZurichTeam(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

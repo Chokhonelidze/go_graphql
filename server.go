@@ -47,7 +47,7 @@ func main() {
 
 	resolvers := &graph.Resolver{DB: db}
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolvers}))
-	if err := db.AutoMigrate(&model.Student{}); err != nil {
+	if err := db.AutoMigrate(&model.Student{}, &model.ZurichTeam{}); err != nil {
         log.Fatalf("failed to migrate database: %v", err)
     }
 

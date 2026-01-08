@@ -132,6 +132,9 @@ models:
   Student:
     model:
       - app/graph/model.Student
+  ZurichTeam:
+    model:
+      - app/graph/model.ZurichTeam
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

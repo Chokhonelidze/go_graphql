@@ -1,0 +1,12 @@
+type ZurichTeam {
+  ID: ID!
+  Name: String!
+}
+
+extend type Query {
+  getZurichTeams: [ZurichTeam!]!
+}
+
+extend type Mutation {
+  createZurichTeam(name: String!): ZurichTeam!
+}
