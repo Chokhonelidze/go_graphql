@@ -1,0 +1,33 @@
+type Document {
+    document_id:ID!
+    group_id:ID!
+    clmNbr:String
+    caseNumber:String
+    original_filename:String
+    file_location:String
+    current_stage:String
+    current_status:String
+    percent_complete:String
+    page_count:Int
+    has_medical:Boolean
+    has_demand:Boolean
+    has_user_feedback:Boolean
+    created_at:String
+    updated_at:String
+    upload_user:String
+    upload_user_id:String
+}
+input newDocument {
+ file_name:String!
+ f_path:String!
+ claim_num:String!
+ case_num:String = ""
+}
+
+extend type Mutation {
+    addDocument(input:newDocument!):ID
+}
+extend type Query {
+    getDocuments:[Document] 
+    getDocumentByID(id:ID):Document
+}

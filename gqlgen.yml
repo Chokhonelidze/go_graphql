@@ -135,6 +135,9 @@ models:
   ZurichTeam:
     model:
       - app/graph/model.ZurichTeam
+  Document:
+    model:
+      - app/graph/model.Document
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
@@ -163,3 +166,7 @@ models:
     model:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
+# Directive configuration
+directives:
+  auth:
+    skip_runtime: false

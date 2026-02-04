@@ -2,20 +2,21 @@ package main
 
 import (
 	"app/graph"
+	"app/graph/model"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
+	// "github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"app/graph/model"
 )
 
 const defaultPort = "8080"
@@ -45,9 +46,12 @@ func main() {
 
 	defer sqlDB.Close()
 
+
 	resolvers := &graph.Resolver{DB: db}
+	
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolvers}))
-	if err := db.AutoMigrate(&model.Student{}, &model.ZurichTeam{}); err != nil {
+	 
+	if err := db.AutoMigrate(&model.Student{}, &model.ZurichTeam{}, &model.Document{}); err != nil {
         log.Fatalf("failed to migrate database: %v", err)
     }
 
@@ -62,7 +66,7 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	http.Handle("/", ApolloSandboxHandler())
 	http.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
@@ -74,5 +78,34 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func ApolloSandboxHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		scheme := "http"
+		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+
+		host := r.Host
+		if !strings.Contains(host, "localhost") {
+			scheme = "https"
+		}
+
+		fullEndpoint := fmt.Sprintf("%s://%s/query", scheme, host)
+
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w,
+			`<div style='width: 100%%; height: 100vh;' id='embedded-sandbox'></div>
+            <script src='https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.umd.production.min.js'></script> 
+            <script>
+            new window.EmbeddedSandbox({
+                target: '#embedded-sandbox',
+                initialEndpoint: '%s',
+                includeCookies: false,
+            });
+            </script>
+        `, fullEndpoint)
+	}
 }
  

@@ -1,6 +1,9 @@
 FROM golang:latest 
 
 WORKDIR /app
+ARG GOPROXY
+ENV GOPROXY=${GOPROXY}
+
 # Copy module files and download deps
 COPY ./go.mod ./go.sum ./
 RUN go mod download

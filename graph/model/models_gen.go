@@ -22,3 +22,10 @@ type User struct {
 	ID   string  `json:"ID"`
 	Name *string `json:"name,omitempty"`
 }
+
+type NewDocument struct {
+	FileName string  `json:"file_name"`
+	FPath    string  `json:"f_path"`
+	ClaimNum string  `json:"claim_num"`
+	CaseNum  *string `json:"case_num,omitempty"`
+}
