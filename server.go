@@ -3,6 +3,7 @@ package main
 import (
 	"app/graph"
 	"app/graph/model"
+	"app/auth"
 	"fmt"
 	"log"
 	"net/http"
@@ -67,7 +68,13 @@ func main() {
 	})
 
 	http.Handle("/", ApolloSandboxHandler())
-	http.Handle("/query", srv)
+	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			auth.HeaderCheckMiddleware()(srv).ServeHTTP(w, r)
+		} else {
+			srv.ServeHTTP(w, r)
+		}
+	})
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
@@ -108,4 +115,3 @@ func ApolloSandboxHandler() http.HandlerFunc {
         `, fullEndpoint)
 	}
 }
- 
