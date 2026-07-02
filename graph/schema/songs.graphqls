@@ -1,0 +1,87 @@
+type songs {
+    id:ID!
+    user_id:UUID!
+    song_id:Int!
+    play_count:Int
+    title:String!
+    release:String
+    artist_name:String!
+    link:String
+    year:Int!
+}
+type songsResult {
+    success: Boolean!
+    errors: [String]
+    data:[songs]
+}
+type songResult {
+    success: Boolean!
+    errors: [String]
+    data:songs
+}
+type prediction {
+    id:ID,
+    score:Float,
+    common:Boolean,
+}
+type predictOutput {
+    success: Boolean!,
+    errors: [String],
+    data:[prediction]
+}
+type updateAllSongsType {
+    success: Boolean!,
+    errors:[String],
+    ids:[Int]
+}
+input songInput {
+    user_id:UUID!,
+}
+input songFilters {
+    search:String,
+    filter:String! = "title",
+    user:ID = ""
+    limit:Int = 100,
+    offset:Int = 0
+}
+input createSong{
+    user_id:UUID!,
+    song_id:Int!,
+    play_count:Int,
+    title:String!,
+    release:String,
+    artist_name:String!,
+    link:String,
+    year:Int!
+}
+input updateSong{
+    id:ID,
+    play_count:Int,
+    title:String,
+    release:String,
+    artist_name:String,
+    link:String,
+    year:Int
+}
+input userSongCountInput {
+    song_id:Int!
+    user_id:UUID!
+}
+
+input updateAllSongLinksInput {
+    id:Int!,
+    link:String!
+}
+
+extend type Query {
+    listSongs(filters:songFilters!): songsResult,
+    getSong(id:ID!) : songResult,
+    predictSong(query:songInput!):predictOutput
+}
+
+extend type Mutation {
+    changeCount(input:userSongCountInput!):Int!,
+    createSong(song:createSong!):songResult,
+    updateSong(song:updateSong!):songResult,
+    updateAllSongLinks(song:updateAllSongLinksInput):updateAllSongsType
+}

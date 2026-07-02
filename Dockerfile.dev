@@ -1,0 +1,22 @@
+FROM golang:latest 
+
+WORKDIR /app
+ENV GOPROXY=direct
+ENV GOSUMDB=off
+
+
+# Copy module files and download deps
+COPY ./go.mod ./go.sum ./
+RUN go mod tidy
+#RUN go mod download
+# Copy application sources into /app
+COPY ./ ./
+# Generate the GraphQL server code
+RUN go run github.com/99designs/gqlgen generate
+RUN curl -sSfL https://atlasgo.sh | sh -s -- -y
+# RUN go install github.com/air-verse/air@latest
+# RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+EXPOSE 8080
+#ENTRYPOINT ["sh", "-c", "go run github.com/99designs/gqlgen generate && air"]
+ENTRYPOINT ["sh", "-c", "go run github.com/99designs/gqlgen generate && go run server.go"]

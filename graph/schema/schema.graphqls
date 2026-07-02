@@ -1,0 +1,83 @@
+scalar UUID
+scalar Map 
+scalar Any
+scalar Float64
+scalar Time
+scalar union
+scalar Date
+scalar SnakeCaseString
+directive @auth(rank: Int = 1) on FIELD_DEFINITION | OBJECT
+
+enum UserTypes {
+    ADMIN,
+    USER
+}
+
+type UserContext {
+    userID: UUID!
+    rank: Int!
+    userName: String!
+    userEmail: String!
+    userRole: UserTypes!
+    userOffice: String!
+    userLOB: String!
+    userGroups: [Int!]!
+}
+
+
+type User {
+    id:ID!,
+    email:String!,
+    password:String!,
+    role:UserTypes!,
+    created_at:String!,
+}
+type UsersResult {
+    success: Boolean!
+    errors: [String]
+    data: [User]
+}
+type UserResult {
+    success: Boolean!
+    errors: [String]
+    data: User
+}
+type loginOutput {
+    success: Boolean!,
+    error: String,
+    data:User
+}
+input createUser {
+    email:String!,
+    password:String!
+    role:UserTypes!
+}
+input updateUser {
+    id:ID!,
+    email:String,
+    password:String,
+    role:UserTypes
+}
+input UsersQuery {
+    limit: Int = 100,
+    offset: Int = 0,
+    search: String,
+    id:ID
+}
+input loginInput {
+    email: String!,
+    password: String!
+}
+
+
+type Mutation {
+    createUser(user:createUser!):UserResult,
+    deleteUser(id:ID!):UserResult,
+    updateUser(user:updateUser):UserResult
+}
+
+type Query {
+    User(query:UsersQuery):UsersResult,
+    login(query:loginInput):loginOutput,
+    test(id:Int,url:String):String
+}

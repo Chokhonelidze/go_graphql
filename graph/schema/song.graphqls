@@ -1,0 +1,55 @@
+type song {
+    song_id:Int!
+    title:String!
+    release:String
+    artist_name:String!
+    link:String
+    local_link:String
+    year:Int!
+}
+
+type pureSongsResult {
+    success: Boolean!
+    errors: [String]
+    data:[song]
+}
+type pureSongResult {
+    success: Boolean!
+    errors: [String]
+    data:song
+}
+input createPureSong {
+    title:String!,
+    release:String,
+    artist_name:String!,
+    link:String,
+    year:Int!
+}
+input pureSongFilters {
+    search:String,
+    filter:String! = "title",
+    user:ID = ""
+    limit:Int = 100,
+    offset:Int = 0
+}
+input updatePureSong{
+    id:ID!
+    title:String,
+    release:String,
+    artist_name:String,
+    link:String,
+    year:Int
+}
+
+extend type Query {
+    listPureSongs(filters:pureSongFilters!): pureSongsResult,
+    downloadSong(ID:ID!): String,
+    searchSong(songText:String!,model:String):[Int]
+    retrainChroma(name:String,chank:Int,overlap:Int): String!
+    resetChroma(name:String!):String!
+}
+
+extend type Mutation {
+    createNewPureSong(song:createPureSong):pureSongResult
+    updatePureSong(song:updatePureSong!):pureSongResult
+}
