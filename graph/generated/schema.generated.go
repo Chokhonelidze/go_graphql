@@ -738,6 +738,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllSongLinks(ctx context
 				return ec.fieldContext_updateAllSongsType_errors(ctx, field)
 			case "ids":
 				return ec.fieldContext_updateAllSongsType_ids(ctx, field)
+			case "local_link":
+				return ec.fieldContext_updateAllSongsType_local_link(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type updateAllSongsType", field.Name)
 		},

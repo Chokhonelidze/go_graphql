@@ -20,7 +20,7 @@ type Songs struct {
 	Release    string    `gorm:"column:release;type:varchar(300)" json:"release"`
 	ArtistName string    `gorm:"column:artist_name;type:varchar(300);index" json:"artist"`
 	Year       int       `gorm:"column:year;type:integer" json:"year"`
-	Link       string    `gorm:"column:link;type:varchar(1000)" json:"link"`
+	LocalLink  string    `gorm:"column:local_link;type:varchar(1000)" json:"local_link"`
 }
 
 func MigrateSongs(db *gorm.DB) error {

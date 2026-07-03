@@ -5,8 +5,8 @@ type songs {
     play_count:Int
     title:String!
     release:String
-    artist_name:String!
-    link:String
+    artist_name:String
+    local_link:String
     year:Int!
 }
 type songsResult {
@@ -33,6 +33,7 @@ type updateAllSongsType {
     success: Boolean!,
     errors:[String],
     ids:[Int]
+    local_link:String
 }
 input songInput {
     user_id:UUID!,
@@ -51,7 +52,7 @@ input createSong{
     title:String!,
     release:String,
     artist_name:String!,
-    link:String,
+    local_link:String,
     year:Int!
 }
 input updateSong{
@@ -60,7 +61,7 @@ input updateSong{
     title:String,
     release:String,
     artist_name:String,
-    link:String,
+    local_link:String,
     year:Int
 }
 input userSongCountInput {
@@ -70,7 +71,7 @@ input userSongCountInput {
 
 input updateAllSongLinksInput {
     id:Int!,
-    link:String!
+    local_link:String!
 }
 
 extend type Query {

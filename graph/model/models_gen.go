@@ -51,7 +51,7 @@ type CreatePureSong struct {
 	Title      string  `json:"title"`
 	Release    *string `json:"release,omitempty"`
 	ArtistName string  `json:"artist_name"`
-	Link       *string `json:"link,omitempty"`
+	VideoLink  *string `json:"video_link,omitempty"`
 	Year       int     `json:"year"`
 }
 
@@ -62,7 +62,7 @@ type CreateSong struct {
 	Title      string    `json:"title"`
 	Release    *string   `json:"release,omitempty"`
 	ArtistName string    `json:"artist_name"`
-	Link       *string   `json:"link,omitempty"`
+	LocalLink  *string   `json:"local_link,omitempty"`
 	Year       int       `json:"year"`
 }
 
@@ -140,14 +140,15 @@ type SongsResult struct {
 }
 
 type UpdateAllSongLinksInput struct {
-	ID   int    `json:"id"`
-	Link string `json:"link"`
+	ID        int    `json:"id"`
+	LocalLink string `json:"local_link"`
 }
 
 type UpdateAllSongsType struct {
-	Success bool      `json:"success"`
-	Errors  []*string `json:"errors,omitempty"`
-	Ids     []*int    `json:"ids,omitempty"`
+	Success   bool      `json:"success"`
+	Errors    []*string `json:"errors,omitempty"`
+	Ids       []*int    `json:"ids,omitempty"`
+	LocalLink *string   `json:"local_link,omitempty"`
 }
 
 type UpdatePureSong struct {
@@ -155,7 +156,7 @@ type UpdatePureSong struct {
 	Title      *string `json:"title,omitempty"`
 	Release    *string `json:"release,omitempty"`
 	ArtistName *string `json:"artist_name,omitempty"`
-	Link       *string `json:"link,omitempty"`
+	VideoLink  *string `json:"video_link,omitempty"`
 	Year       *int    `json:"year,omitempty"`
 }
 
@@ -165,7 +166,7 @@ type UpdateSong struct {
 	Title      *string `json:"title,omitempty"`
 	Release    *string `json:"release,omitempty"`
 	ArtistName *string `json:"artist_name,omitempty"`
-	Link       *string `json:"link,omitempty"`
+	LocalLink  *string `json:"local_link,omitempty"`
 	Year       *int    `json:"year,omitempty"`
 }
 

@@ -3,7 +3,7 @@ type song {
     title:String!
     release:String
     artist_name:String!
-    link:String
+    video_link:String
     local_link:String
     year:Int!
 }
@@ -22,7 +22,7 @@ input createPureSong {
     title:String!,
     release:String,
     artist_name:String!,
-    link:String,
+    video_link:String,
     year:Int!
 }
 input pureSongFilters {
@@ -37,7 +37,7 @@ input updatePureSong{
     title:String,
     release:String,
     artist_name:String,
-    link:String,
+    video_link:String,
     year:Int
 }
 

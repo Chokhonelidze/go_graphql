@@ -42,19 +42,32 @@ func (r *mutationResolver) ChangeCount(ctx context.Context, input model.UserSong
 func (r *mutationResolver) CreateSong(ctx context.Context, song model.CreateSong) (*model.SongResult, error) {
 	songmodel := &model.Songs{}
 	result := r.DB.Where("user_id = ? AND song_id = ?", song.UserID, song.SongID).First(songmodel)
+	fmt.Println("Result of query: ", result.Error, " RowsAffected: ", result.RowsAffected)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			fmt.Println("Creating new song")
+			var release, link string
+			if song.Release != nil {
+				release = *song.Release
+			}
+			if song.LocalLink != nil {
+				link = *song.LocalLink
+			}
+			playCount := 0
+			if song.PlayCount != nil {
+				playCount = *song.PlayCount
+			}
 			newSong := &model.Songs{
 				UserID:     song.UserID,
 				SongID:     song.SongID,
-				PlayCount:  1,
+				PlayCount:  playCount,
 				Title:      song.Title,
-				Release:    *song.Release,
+				Release:    release,
 				ArtistName: song.ArtistName,
 				Year:       song.Year,
-				Link:       *song.Link,
+				LocalLink:  link,
 			}
-			r.DB.Save(newSong)
+			r.DB.Save(&newSong)
 			return &model.SongResult{
 				Success: true,
 				Errors:  []*string{},
@@ -80,7 +93,7 @@ func (r *mutationResolver) CreateSong(ctx context.Context, song model.CreateSong
 // UpdateSong is the resolver for the updateSong field.
 func (r *mutationResolver) UpdateSong(ctx context.Context, song model.UpdateSong) (*model.SongResult, error) {
 	songmodel := &model.Songs{}
-	result := r.DB.Where("song_id=?", song.ID).First(songmodel)
+	result := r.DB.Where("id=?", song.ID).First(songmodel)
 	if result.Error != nil {
 		errorMessage := result.Error.Error()
 		return &model.SongResult{
@@ -112,8 +125,8 @@ func (r *mutationResolver) UpdateSong(ctx context.Context, song model.UpdateSong
 	if song.Year != nil {
 		songmodel.Year = *song.Year
 	}
-	if song.Link != nil {
-		songmodel.Link = *song.Link
+	if song.LocalLink != nil {
+		songmodel.LocalLink = *song.LocalLink
 	}
 	r.DB.Save(songmodel)
 	return &model.SongResult{
@@ -126,7 +139,7 @@ func (r *mutationResolver) UpdateSong(ctx context.Context, song model.UpdateSong
 // UpdateAllSongLinks is the resolver for the updateAllSongLinks field.
 func (r *mutationResolver) UpdateAllSongLinks(ctx context.Context, song *model.UpdateAllSongLinksInput) (*model.UpdateAllSongsType, error) {
 	id := song.ID
-	link := song.Link
+	link := song.LocalLink
 	findSong := model.Song{}
 	// 1. Execute the query and capture the result metadata
 	result := r.DB.Where("song_id = ?", id).Find(&findSong)
@@ -136,14 +149,27 @@ func (r *mutationResolver) UpdateAllSongLinks(ctx context.Context, song *model.U
 	if result.RowsAffected == 0 {
 		return nil, fmt.Errorf("song not found")
 	}
-	if findSong.LocalLink != "" {
-		core.DownloadAudioFromYouTube(r.DB, ctx, findSong.SongID, link)
+	if findSong.LocalLink == "" {
+		fmt.Println(link)
+		localLink, err := core.DownloadAudioFromYouTube(r.DB, ctx, findSong.SongID, link)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download audio from YouTube: %w", err)
+		}
+		findSong.LocalLink = localLink
+	}
+	// 2. Update all records with the same song_id
+	updateResult := r.DB.Model(&model.Songs{}).Where("song_id = ?", id).Updates(map[string]interface{}{
+		"local_link": findSong.LocalLink,
+	})
+	if updateResult.Error != nil {
+		return nil, fmt.Errorf("failed to update song links: %w", updateResult.Error)
 	}
 
 	return &model.UpdateAllSongsType{
-		Success: true,
-		Errors:  []*string{},
-		Ids:     []*int{&id},
+		Success:   true,
+		Errors:    []*string{},
+		Ids:       []*int{&id},
+		LocalLink: &findSong.LocalLink,
 	}, nil
 }
 
@@ -187,8 +213,10 @@ func (r *queryResolver) ListSongs(ctx context.Context, filters model.SongFilters
 
 	query.Find(&songs)
 	println("Retrieved songs:", len(songs))
+
 	for _, song := range songs {
-		println("ID:", song.SongID, "Song ID:", song.SongID, "Title:", song.Title)
+		fmt.Printf("Song: %+v\n", song)
+		println("ID:", song.SongID, "Song ID:", song.SongID, "Link:", song.LocalLink)
 	}
 	return &model.SongsResult{
 		Success: true,
@@ -220,6 +248,7 @@ func (r *queryResolver) GetSong(ctx context.Context, id string) (*model.SongResu
 // PredictSong is the resolver for the predictSong field.
 func (r *queryResolver) PredictSong(ctx context.Context, query model.SongInput) (*model.PredictOutput, error) {
 	rows, err := r.DB.Model(&model.Songs{}).Select("user_id, song_id, play_count").Rows()
+
 	if err != nil {
 		errMsg := err.Error()
 		return &model.PredictOutput{
@@ -242,6 +271,7 @@ func (r *queryResolver) PredictSong(ctx context.Context, query model.SongInput) 
 		dataset = append(dataset, sr)
 	}
 	predictions, err := ai_functions.GetRecommendations(dataset, query.UserID.String(), 3)
+	fmt.Println("predictions", predictions)
 	if err != nil {
 		errMsg := err.Error()
 		errMsgPtr := errMsg
@@ -249,6 +279,7 @@ func (r *queryResolver) PredictSong(ctx context.Context, query model.SongInput) 
 	}
 	var gqlPredictions []*model.Prediction
 	for _, p := range predictions {
+		fmt.Println(p)
 		common := p.Common
 		score := p.Score
 		id := p.ID

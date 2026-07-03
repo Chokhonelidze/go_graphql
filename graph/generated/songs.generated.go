@@ -307,8 +307,8 @@ func (ec *executionContext) fieldContext_songResult_data(_ context.Context, fiel
 				return ec.fieldContext_songs_release(ctx, field)
 			case "artist_name":
 				return ec.fieldContext_songs_artist_name(ctx, field)
-			case "link":
-				return ec.fieldContext_songs_link(ctx, field)
+			case "local_link":
+				return ec.fieldContext_songs_local_link(ctx, field)
 			case "year":
 				return ec.fieldContext_songs_year(ctx, field)
 			}
@@ -502,9 +502,9 @@ func (ec *executionContext) _songs_artist_name(ctx context.Context, field graphq
 			return obj.ArtistName, nil
 		},
 		nil,
-		ec.marshalNString2string,
+		ec.marshalOString2string,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -521,14 +521,14 @@ func (ec *executionContext) fieldContext_songs_artist_name(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _songs_link(ctx context.Context, field graphql.CollectedField, obj *model.Songs) (ret graphql.Marshaler) {
+func (ec *executionContext) _songs_local_link(ctx context.Context, field graphql.CollectedField, obj *model.Songs) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_songs_link,
+		ec.fieldContext_songs_local_link,
 		func(ctx context.Context) (any, error) {
-			return obj.Link, nil
+			return obj.LocalLink, nil
 		},
 		nil,
 		ec.marshalOString2string,
@@ -537,7 +537,7 @@ func (ec *executionContext) _songs_link(ctx context.Context, field graphql.Colle
 	)
 }
 
-func (ec *executionContext) fieldContext_songs_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_songs_local_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "songs",
 		Field:      field,
@@ -675,8 +675,8 @@ func (ec *executionContext) fieldContext_songsResult_data(_ context.Context, fie
 				return ec.fieldContext_songs_release(ctx, field)
 			case "artist_name":
 				return ec.fieldContext_songs_artist_name(ctx, field)
-			case "link":
-				return ec.fieldContext_songs_link(ctx, field)
+			case "local_link":
+				return ec.fieldContext_songs_local_link(ctx, field)
 			case "year":
 				return ec.fieldContext_songs_year(ctx, field)
 			}
@@ -773,6 +773,35 @@ func (ec *executionContext) fieldContext_updateAllSongsType_ids(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _updateAllSongsType_local_link(ctx context.Context, field graphql.CollectedField, obj *model.UpdateAllSongsType) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_updateAllSongsType_local_link,
+		func(ctx context.Context) (any, error) {
+			return obj.LocalLink, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_updateAllSongsType_local_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "updateAllSongsType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -784,7 +813,7 @@ func (ec *executionContext) unmarshalInputcreateSong(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"user_id", "song_id", "play_count", "title", "release", "artist_name", "link", "year"}
+	fieldsInOrder := [...]string{"user_id", "song_id", "play_count", "title", "release", "artist_name", "local_link", "year"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -833,13 +862,13 @@ func (ec *executionContext) unmarshalInputcreateSong(ctx context.Context, obj an
 				return it, err
 			}
 			it.ArtistName = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
+		case "local_link":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("local_link"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Link = data
+			it.LocalLink = data
 		case "year":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
@@ -955,7 +984,7 @@ func (ec *executionContext) unmarshalInputupdateAllSongLinksInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "link"}
+	fieldsInOrder := [...]string{"id", "local_link"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -969,13 +998,13 @@ func (ec *executionContext) unmarshalInputupdateAllSongLinksInput(ctx context.Co
 				return it, err
 			}
 			it.ID = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
+		case "local_link":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("local_link"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Link = data
+			it.LocalLink = data
 		}
 	}
 
@@ -989,7 +1018,7 @@ func (ec *executionContext) unmarshalInputupdateSong(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "play_count", "title", "release", "artist_name", "link", "year"}
+	fieldsInOrder := [...]string{"id", "play_count", "title", "release", "artist_name", "local_link", "year"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -1031,13 +1060,13 @@ func (ec *executionContext) unmarshalInputupdateSong(ctx context.Context, obj an
 				return it, err
 			}
 			it.ArtistName = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
+		case "local_link":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("local_link"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Link = data
+			it.LocalLink = data
 		case "year":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
@@ -1256,11 +1285,8 @@ func (ec *executionContext) _songs(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._songs_release(ctx, field, obj)
 		case "artist_name":
 			out.Values[i] = ec._songs_artist_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "link":
-			out.Values[i] = ec._songs_link(ctx, field, obj)
+		case "local_link":
+			out.Values[i] = ec._songs_local_link(ctx, field, obj)
 		case "year":
 			out.Values[i] = ec._songs_year(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1352,6 +1378,8 @@ func (ec *executionContext) _updateAllSongsType(ctx context.Context, sel ast.Sel
 			out.Values[i] = ec._updateAllSongsType_errors(ctx, field, obj)
 		case "ids":
 			out.Values[i] = ec._updateAllSongsType_ids(ctx, field, obj)
+		case "local_link":
+			out.Values[i] = ec._updateAllSongsType_local_link(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

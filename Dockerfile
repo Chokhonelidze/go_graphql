@@ -1,8 +1,5 @@
-ARG BASEIMAGE
-ARG BASEIMAGE2
 
-FROM ${BASEIMAGE} AS build
-RUN echo $BASEIMAGE
+FROM golang:latest AS build
 ENV CGO_ENABLED=0 GO111MODULE=on
 ENV GOPROXY=direct
 ENV GOSUMDB=off
@@ -19,8 +16,8 @@ RUN go run github.com/99designs/gqlgen generate
 RUN go build -o /server .
 
 
-FROM ${BASEIMAGE2} AS final
-RUN echo $BASEIMAGE2
+FROM alpine  AS final
+
 # ARG AZURE_CLIENT_ID
 # ARG AZURE_CLIENT_SECRET
 # ARG AZURE_TENANT_ID

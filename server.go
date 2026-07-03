@@ -158,6 +158,22 @@ func main() {
 	})
 	router.Handle("/", ApolloSandboxHandler())
 	router.Handle("/graphql", auth.HeaderCheckMiddleware()(srv))
+	router.HandleFunc("/app/downloads/{file}", func(w http.ResponseWriter, r *http.Request) {
+		file := chi.URLParam(r, "file")
+		log.Println("Download request received for file:", file)
+		// Prevent path traversal
+		if strings.Contains(file, "..") || strings.Contains(file, "/") || strings.Contains(file, "\\") {
+			http.Error(w, "invalid file name", http.StatusBadRequest)
+			return
+		}
+		filePath := fmt.Sprintf("/app/downloads/%s", file)
+		log.Println("Serving file for download:", filePath)
+		// Set headers to force download
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filePath))
+		w.Header().Set("Content-Type", "application/octet-stream")
+		http.ServeFile(w, r, filePath)
+	})
+
 	// http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 	// 	if r.Method == http.MethodPost {
 	// 		auth.HeaderCheckMiddleware()(srv).ServeHTTP(w, r)

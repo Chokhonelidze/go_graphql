@@ -10,9 +10,9 @@ type Song struct {
 	SongID     int    `gorm:"column:song_id;primaryKey;autoIncrement" json:"song_id"`
 	Title      string `gorm:"column:title;type:varchar(500);index" json:"title"`
 	Release    string `gorm:"column:release;type:varchar(500)" json:"release"`
-	ArtistName string `gorm:"column:artist_name;type:varchar(500);index" json:"artist"`
+	ArtistName string `gorm:"column:artist_name;type:varchar(500);index" json:"artist_name"`
 	Year       int    `gorm:"column:year;type:integer" json:"year"`
-	Link       string `gorm:"column:link;type:varchar(500)" json:"link"`
+	VideoLink  string `gorm:"column:video_link;type:varchar(500)" json:"video_link"`
 	LocalLink  string `gorm:"column:local_link;type:varchar(500)" json:"local_link"`
 }
 
@@ -36,7 +36,7 @@ func MigrateSong(db *gorm.DB) error {
 	// PostgreSQL / MySQL require columns to be explicitly listed or grouped to stay deterministic
 	var distinctSongs []Song
 	err := db.Table("songs"). // Target your original RAW csv ingestion table name
-					Select("DISTINCT ON (song_id) song_id, title, release, artist_name , year, link").
+					Select("DISTINCT ON (song_id) song_id, title, release, artist_name , year, local_link").
 					Order("song_id").
 					Find(&distinctSongs).Error
 

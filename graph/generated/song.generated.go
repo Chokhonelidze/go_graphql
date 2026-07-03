@@ -119,8 +119,8 @@ func (ec *executionContext) fieldContext_pureSongResult_data(_ context.Context, 
 				return ec.fieldContext_song_release(ctx, field)
 			case "artist_name":
 				return ec.fieldContext_song_artist_name(ctx, field)
-			case "link":
-				return ec.fieldContext_song_link(ctx, field)
+			case "video_link":
+				return ec.fieldContext_song_video_link(ctx, field)
 			case "local_link":
 				return ec.fieldContext_song_local_link(ctx, field)
 			case "year":
@@ -222,8 +222,8 @@ func (ec *executionContext) fieldContext_pureSongsResult_data(_ context.Context,
 				return ec.fieldContext_song_release(ctx, field)
 			case "artist_name":
 				return ec.fieldContext_song_artist_name(ctx, field)
-			case "link":
-				return ec.fieldContext_song_link(ctx, field)
+			case "video_link":
+				return ec.fieldContext_song_video_link(ctx, field)
 			case "local_link":
 				return ec.fieldContext_song_local_link(ctx, field)
 			case "year":
@@ -351,14 +351,14 @@ func (ec *executionContext) fieldContext_song_artist_name(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _song_link(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _song_video_link(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_song_link,
+		ec.fieldContext_song_video_link,
 		func(ctx context.Context) (any, error) {
-			return obj.Link, nil
+			return obj.VideoLink, nil
 		},
 		nil,
 		ec.marshalOString2string,
@@ -367,7 +367,7 @@ func (ec *executionContext) _song_link(ctx context.Context, field graphql.Collec
 	)
 }
 
-func (ec *executionContext) fieldContext_song_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_song_video_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "song",
 		Field:      field,
@@ -449,7 +449,7 @@ func (ec *executionContext) unmarshalInputcreatePureSong(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "release", "artist_name", "link", "year"}
+	fieldsInOrder := [...]string{"title", "release", "artist_name", "video_link", "year"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -477,13 +477,13 @@ func (ec *executionContext) unmarshalInputcreatePureSong(ctx context.Context, ob
 				return it, err
 			}
 			it.ArtistName = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
+		case "video_link":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("video_link"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Link = data
+			it.VideoLink = data
 		case "year":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
@@ -572,7 +572,7 @@ func (ec *executionContext) unmarshalInputupdatePureSong(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "title", "release", "artist_name", "link", "year"}
+	fieldsInOrder := [...]string{"id", "title", "release", "artist_name", "video_link", "year"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -607,13 +607,13 @@ func (ec *executionContext) unmarshalInputupdatePureSong(ctx context.Context, ob
 				return it, err
 			}
 			it.ArtistName = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
+		case "video_link":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("video_link"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Link = data
+			it.VideoLink = data
 		case "year":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
@@ -749,8 +749,8 @@ func (ec *executionContext) _song(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "link":
-			out.Values[i] = ec._song_link(ctx, field, obj)
+		case "video_link":
+			out.Values[i] = ec._song_video_link(ctx, field, obj)
 		case "local_link":
 			out.Values[i] = ec._song_local_link(ctx, field, obj)
 		case "year":

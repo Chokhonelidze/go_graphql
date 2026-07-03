@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, videoURL string) error {
+func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, videoURL string) (string, error) {
 	// 1. Initialize the specialized scraping client
 	client := youtube.Client{}
 
@@ -23,13 +23,13 @@ func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, vide
 	video, err := client.GetVideoContext(ctx, videoURL)
 	if err != nil {
 		log.Printf("Failed to fetch video streams: %v", err)
-		return fmt.Errorf("fetch video streams: %w", err)
+		return "", fmt.Errorf("fetch video streams: %w", err)
 	}
 
 	// 3. Filter list to select ONLY audio tracks (ignoring the visual data track)
 	audioFormats := video.Formats.Type("audio")
 	if len(audioFormats) == 0 {
-		return fmt.Errorf("no audio format profiles found for this video")
+		return "", fmt.Errorf("no audio format profiles found for this video")
 	}
 
 	// Select the absolute best quality audio track available (typically index 0)
@@ -39,14 +39,14 @@ func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, vide
 	stream, _, err := client.GetStreamContext(ctx, video, targetFormat)
 	if err != nil {
 		log.Printf("Failed to open audio data stream: %v", err)
-		return fmt.Errorf("open audio stream: %w", err)
+		return "", fmt.Errorf("open audio stream: %w", err)
 	}
 	defer stream.Close()
 
 	// 5. Build safe target folders and output files
-	destinationDir := "/downloads"
+	destinationDir := "/app/downloads"
 	if err := os.MkdirAll(destinationDir, 0755); err != nil {
-		return fmt.Errorf("create download path layout: %w", err)
+		return "", fmt.Errorf("create download path layout: %w", err)
 	}
 
 	// Create an absolute filename (e.g., /downloads/video_id.m4a or .webm)
@@ -62,7 +62,7 @@ func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, vide
 	outFile, err := os.Create(outputPath)
 
 	if err != nil {
-		return fmt.Errorf("create audio target output file: %w", err)
+		return "", fmt.Errorf("create audio target output file: %w", err)
 	}
 	defer outFile.Close()
 
@@ -70,20 +70,22 @@ func DownloadAudioFromYouTube(db *gorm.DB, ctx context.Context, songID int, vide
 	log.Printf("Downloading audio for: %s -> %s", video.Title, outputPath)
 	_, err = io.Copy(outFile, stream)
 	if err != nil {
-		return fmt.Errorf("failed during data packet streaming pipeline: %w", err)
+		return "", fmt.Errorf("failed during data packet streaming pipeline: %w", err)
+	}
+	fmt.Println("Audio download completed successfully!")
+	downloadedRecordURL := fmt.Sprintf("/app/downloads/%s.%s", video.ID, outputExtension)
+	fmt.Println(downloadedRecordURL)
+	if err := db.Model(&model.Songs{}).Where("song_id = ?", songID).Update("local_link", downloadedRecordURL).Error; err != nil {
+		return "", fmt.Errorf("failed to update song link: %w", err)
 	}
 
-	if err := db.Model(&model.Songs{}).Where("song_id = ?", songID).Update("link", videoURL).Error; err != nil {
-		return fmt.Errorf("failed to update song link: %w", err)
-	}
-
-	if err := db.Model(&model.Song{}).Where("song_id= ?", songID).Update("localLink", outputPath).Update("link", videoURL).Error; err != nil {
-		return fmt.Errorf("failed to update song local link: %w", err)
+	if err := db.Model(&model.Song{}).Where("song_id= ?", songID).Update("video_link", videoURL).Update("local_link", downloadedRecordURL).Error; err != nil {
+		return "", fmt.Errorf("failed to update song local link: %w", err)
 	}
 	//transcribeMp3ToText(db, outputPath, songID)
 
 	log.Println("Audio track saved cleanly!")
-	return nil
+	return downloadedRecordURL, nil
 }
 
 func transcribeMp3ToText(db *gorm.DB, filePath string, song_id int) (string, error) {

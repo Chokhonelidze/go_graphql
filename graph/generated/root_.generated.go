@@ -132,11 +132,11 @@ type ComplexityRoot struct {
 
 	Song struct {
 		ArtistName func(childComplexity int) int
-		Link       func(childComplexity int) int
 		LocalLink  func(childComplexity int) int
 		Release    func(childComplexity int) int
 		SongID     func(childComplexity int) int
 		Title      func(childComplexity int) int
+		VideoLink  func(childComplexity int) int
 		Year       func(childComplexity int) int
 	}
 
@@ -149,7 +149,7 @@ type ComplexityRoot struct {
 	Songs struct {
 		ArtistName func(childComplexity int) int
 		ID         func(childComplexity int) int
-		Link       func(childComplexity int) int
+		LocalLink  func(childComplexity int) int
 		PlayCount  func(childComplexity int) int
 		Release    func(childComplexity int) int
 		SongID     func(childComplexity int) int
@@ -165,9 +165,10 @@ type ComplexityRoot struct {
 	}
 
 	UpdateAllSongsType struct {
-		Errors  func(childComplexity int) int
-		Ids     func(childComplexity int) int
-		Success func(childComplexity int) int
+		Errors    func(childComplexity int) int
+		Ids       func(childComplexity int) int
+		LocalLink func(childComplexity int) int
+		Success   func(childComplexity int) int
 	}
 }
 
@@ -675,13 +676,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Song.ArtistName(childComplexity), true
 
-	case "song.link":
-		if e.complexity.Song.Link == nil {
-			break
-		}
-
-		return e.complexity.Song.Link(childComplexity), true
-
 	case "song.local_link":
 		if e.complexity.Song.LocalLink == nil {
 			break
@@ -709,6 +703,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Song.Title(childComplexity), true
+
+	case "song.video_link":
+		if e.complexity.Song.VideoLink == nil {
+			break
+		}
+
+		return e.complexity.Song.VideoLink(childComplexity), true
 
 	case "song.year":
 		if e.complexity.Song.Year == nil {
@@ -752,12 +753,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Songs.ID(childComplexity), true
 
-	case "songs.link":
-		if e.complexity.Songs.Link == nil {
+	case "songs.local_link":
+		if e.complexity.Songs.LocalLink == nil {
 			break
 		}
 
-		return e.complexity.Songs.Link(childComplexity), true
+		return e.complexity.Songs.LocalLink(childComplexity), true
 
 	case "songs.play_count":
 		if e.complexity.Songs.PlayCount == nil {
@@ -835,6 +836,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.UpdateAllSongsType.Ids(childComplexity), true
+
+	case "updateAllSongsType.local_link":
+		if e.complexity.UpdateAllSongsType.LocalLink == nil {
+			break
+		}
+
+		return e.complexity.UpdateAllSongsType.LocalLink(childComplexity), true
 
 	case "updateAllSongsType.success":
 		if e.complexity.UpdateAllSongsType.Success == nil {
@@ -1049,7 +1057,7 @@ type Query {
     title:String!
     release:String
     artist_name:String!
-    link:String
+    video_link:String
     local_link:String
     year:Int!
 }
@@ -1068,7 +1076,7 @@ input createPureSong {
     title:String!,
     release:String,
     artist_name:String!,
-    link:String,
+    video_link:String,
     year:Int!
 }
 input pureSongFilters {
@@ -1083,7 +1091,7 @@ input updatePureSong{
     title:String,
     release:String,
     artist_name:String,
-    link:String,
+    video_link:String,
     year:Int
 }
 
@@ -1106,8 +1114,8 @@ extend type Mutation {
     play_count:Int
     title:String!
     release:String
-    artist_name:String!
-    link:String
+    artist_name:String
+    local_link:String
     year:Int!
 }
 type songsResult {
@@ -1134,6 +1142,7 @@ type updateAllSongsType {
     success: Boolean!,
     errors:[String],
     ids:[Int]
+    local_link:String
 }
 input songInput {
     user_id:UUID!,
@@ -1152,7 +1161,7 @@ input createSong{
     title:String!,
     release:String,
     artist_name:String!,
-    link:String,
+    local_link:String,
     year:Int!
 }
 input updateSong{
@@ -1161,7 +1170,7 @@ input updateSong{
     title:String,
     release:String,
     artist_name:String,
-    link:String,
+    local_link:String,
     year:Int
 }
 input userSongCountInput {
@@ -1171,7 +1180,7 @@ input userSongCountInput {
 
 input updateAllSongLinksInput {
     id:Int!,
-    link:String!
+    local_link:String!
 }
 
 extend type Query {
